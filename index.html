@@ -50,11 +50,22 @@
             <button onclick="pullFromCloud()" class="secondary">Force Pull</button>
         </div>
     </div>
-
-    <div class="input-group">
-        <input type="text" id="foodName" class="flex-grow" placeholder="Food Name (e.g. Greek Salad)">
-        <input type="number" id="foodCals" placeholder="Kcal" style="width: 60px;">
+<div style="position:relative;">
+        <div class="input-group" style="margin-bottom: 5px;">
+            <input type="text" id="foodName" class="flex-grow" placeholder="Food Name (e.g. Banana)" onkeyup="lookupCalories()">
+            <input type="number" id="foodCals" placeholder="Kcal" style="width: 70px;">
+        </div>
+        <div id="cal-suggestion" style="
+            font-size: 0.85rem; 
+            color: var(--accent); 
+            margin-bottom: 15px; 
+            height: 20px; 
+            cursor: pointer;
+            font-weight: bold;" 
+            onclick="applySuggestion()">
+        </div>
     </div>
+
     <div class="input-group">
         <select id="foodType" class="flex-grow">
             <option value="essential">🥦 Essential (Must Eat)</option>
@@ -62,6 +73,8 @@
         </select>
         <button onclick="addFood()">Add</button>
     </div>
+    
+    <div id="config-list"></div>
     
     <div id="config-list"></div>
 
@@ -232,6 +245,56 @@
 
     function updateStatus(msg) {
         document.getElementById('sync-status').innerText = msg;
+    }
+    // --- SMART CALORIE GUESSER ---
+
+    // A simple offline database (per 100g or 1 unit)
+    const foodDB = {
+        "egg": 72, "banana": 105, "apple": 95, "chicken breast": 165,
+        "rice (cooked)": 130, "bread": 265, "avocado": 160, "beef": 250,
+        "pasta": 131, "potato": 77, "cheese": 402, "milk": 42,
+        "yogurt": 59, "salmon": 208, "tuna": 132, "oats": 389,
+        "pizza": 266, "burger": 295, "fries": 312, "chocolate": 546,
+        "beer": 43, "wine": 82, "coke": 37, "coffee": 1,
+        "almonds": 579, "peanut butter": 588, "olive oil": 884,
+        "butter": 717, "honey": 304, "sugar": 387, "tofu": 76,
+        "broccoli": 34, "carrot": 41, "spinach": 23, "tomato": 18,
+        "cucumber": 15, "lettuce": 15, "onion": 40, "garlic": 149,
+        "orange": 47, "grapes": 69, "strawberry": 32, "blueberry": 57
+    };
+
+    let currentSuggestion = 0;
+
+    function lookupCalories() {
+        const input = document.getElementById('foodName').value.toLowerCase();
+        const output = document.getElementById('cal-suggestion');
+        
+        if (input.length < 2) {
+            output.innerText = "";
+            currentSuggestion = 0;
+            return;
+        }
+
+        // Find the first matching key
+        const match = Object.keys(foodDB).find(key => input.includes(key) || key.includes(input));
+
+        if (match) {
+            currentSuggestion = foodDB[match];
+            output.innerText = `💡 Found "${match}": ~${currentSuggestion} kcal (Click to use)`;
+        } else {
+            output.innerText = "";
+            currentSuggestion = 0;
+        }
+    }
+
+    function applySuggestion() {
+        if (currentSuggestion > 0) {
+            document.getElementById('foodCals').value = currentSuggestion;
+            // Visual feedback
+            const output = document.getElementById('cal-suggestion');
+            output.innerText = "✅ Applied!";
+            setTimeout(() => output.innerText = "", 1000);
+        }
     }
 </script>
 </body>
