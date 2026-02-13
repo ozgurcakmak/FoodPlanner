@@ -78,6 +78,30 @@
     
     <div id="config-list"></div>
 
+    <div style="background: #e6e6e6; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d3d3d3;">
+        <h3 style="margin-top:0; color:#586e75; font-size: 1rem;">🔥 Calorie Calculator</h3>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+            <input type="number" id="calcWeight" placeholder="Weight (kg)">
+            <input type="number" id="calcHeight" placeholder="Height (cm)">
+            <input type="number" id="calcAge" placeholder="Age">
+            <select id="calcGender">
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
+        </div>
+
+        <select id="calcActivity" style="width: 100%; margin-bottom: 10px;">
+            <option value="1.0">Basal Metabolic Rate (BMR) - Coma Mode</option>
+            <option value="1.2">Sedentary (Desk Job, Little Exercise)</option>
+            <option value="1.375">Light Activity (1-3 days/week)</option>
+            <option value="1.55">Moderate Activity (3-5 days/week)</option>
+            <option value="1.725">Very Active (6-7 days/week)</option>
+        </select>
+
+        <button onclick="calculateBMR()" style="width: 100%; background: #586e75;">Calculate & Set Limit</button>
+        <div id="calc-result" style="text-align: center; margin-top: 10px; font-weight: bold; color: var(--accent); font-size: 0.9rem;"></div>
+    </div>
     <div id="result-area">
         <h3 style="margin-top:0; color:var(--accent)">Daily Generator</h3>
         <div class="input-group">
@@ -295,6 +319,43 @@
             output.innerText = "✅ Applied!";
             setTimeout(() => output.innerText = "", 1000);
         }
+    }
+
+    // --- BMR CALCULATOR ---
+    function calculateBMR() {
+        const weight = parseFloat(document.getElementById('calcWeight').value);
+        const height = parseFloat(document.getElementById('calcHeight').value);
+        const age = parseFloat(document.getElementById('calcAge').value);
+        const gender = document.getElementById('calcGender').value;
+        const multiplier = parseFloat(document.getElementById('calcActivity').value);
+
+        if (!weight || !height || !age) {
+            document.getElementById('calc-result').innerText = "Please fill all fields.";
+            return;
+        }
+
+        // Mifflin-St Jeor Equation
+        let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+        
+        if (gender === 'male') {
+            bmr += 5;
+        } else {
+            bmr -= 161;
+        }
+
+        // Apply Activity Multiplier
+        const tdee = Math.round(bmr * multiplier);
+
+        // Display Result
+        document.getElementById('calc-result').innerText = `BMR: ${Math.round(bmr)} | Target: ${tdee} kcal`;
+        
+        // Auto-fill the generator input
+        document.getElementById('dailyLimit').value = tdee;
+        
+        // Visual feedback on the generator input
+        const limitInput = document.getElementById('dailyLimit');
+        limitInput.style.backgroundColor = "#e0f2f1"; // Flash green
+        setTimeout(() => limitInput.style.backgroundColor = "#fff", 500);
     }
 </script>
 </body>
